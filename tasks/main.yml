@@ -1,0 +1,114 @@
+---
+- name: Check if rsnapshot configuration file already exists.
+  stat: path=/etc/rsnapshot.conf
+  register: rsnapshot_config_file
+
+- name: Check if rsnapshot is already installed.
+  stat: path=/usr/bin/rsnapshot
+  register: rsnapshot_file
+
+- name: "Install rsnapshot"
+  yum:
+    name: rsnapshot
+    state: present
+  when: (rsnapshot_file.stat.exists == false)
+
+- name: Copy rsnapshot configuration file.
+  template:
+    src: "{{ rsnapshot_config_template }}"
+    dest: /etc/rsnapshot.conf
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: Check snapshots directory exist.
+  stat:
+    path: "{{ rsnapshot_config_snapshot_root }}"
+  register: snapshots_exist
+
+
+- name: Creates directory, all snapshots will be stored under this directory.
+  file:
+    path: "{{ rsnapshot_config_snapshot_root }}"
+    state: directory
+    mode: 0755
+  when: (snapshots_exist.stat.exists == false)
+
+
+- name: Check logfile directory exist.
+  stat:
+    path: "{{ rsnapshot_config_logfile_folder }}"
+  register: logfile_exist
+
+- name: Creates logfile directory.
+  file:
+    path: "{{ rsnapshot_config_logfile_folder }}"
+    state: directory
+    mode: 0755
+  when: (logfile_exist.stat.exists == false)
+
+
+- name: Check lockfile directory exist.
+  stat:
+    path: "{{ rsnapshot_config_lockfile_folder }}"
+  register: lockfile_exist
+
+- name: Creates lockfile directory.
+  file:
+    path: "{{ rsnapshot_config_lockfile_folder }}"
+    state: directory
+    mode: 0755
+  when: (lockfile_exist.stat.exists == false)
+
+
+- name: Creates rsnapshot hourly backup cronjob
+  cron: minute="{{ rsnapshot_cron_hourly_minute }}" hour="{{ rsnapshot_cron_hourly_hour }}" day="{{ rsnapshot_cron_hourly_day }}" month="{{ rsnapshot_cron_hourly_month }}" weekday="{{ rsnapshot_cron_hourly_weekday }}"
+        name="rsnapshot hourly"
+        cron_file="rsnapshot"
+        user="root"
+        job="/usr/bin/rsnapshot hourly"
+
+
+- name: Creates rsnapshot daily backup cronjob
+  cron: minute="{{ rsnapshot_cron_daily_minute }}" hour="{{ rsnapshot_cron_daily_hour }}" day="{{ rsnapshot_cron_daily_day }}" month="{{ rsnapshot_cron_daily_month }}" weekday="{{ rsnapshot_cron_daily_weekday }}"
+        name="rsnapshot daily"
+        cron_file="rsnapshot"
+        user="root"
+        job="/usr/bin/rsnapshot daily"
+
+
+- name: Creates rsnapshot weekly backup cronjob
+  cron: minute="{{ rsnapshot_cron_weekly_minute }}" hour="{{ rsnapshot_cron_weekly_hour }}" day="{{ rsnapshot_cron_weekly_day }}" month="{{ rsnapshot_cron_weekly_month }}" weekday="{{ rsnapshot_cron_weekly_weekday }}"
+        name="rsnapshot weekly"
+        cron_file="rsnapshot"
+        user="root"
+        job="/usr/bin/rsnapshot weekly"
+
+
+- name: Creates rsnapshot monthly backup cronjob
+  cron: minute="{{ rsnapshot_cron_monthly_minute }}" hour="{{ rsnapshot_cron_monthly_hour }}" day="{{ rsnapshot_cron_monthly_day }}" month="{{ rsnapshot_cron_monthly_month }}" weekday="{{ rsnapshot_cron_monthly_weekday }}"
+        name="rsnapshot monthly"
+        cron_file="rsnapshot"
+        user="root"
+        job="/usr/bin/rsnapshot monthly"
+
+
+- name: Verify that the config file is syntactically valid.
+  ansible.builtin.command:
+    cmd: rsnapshot configtest
+  register: configtest_result
+- name: Verify that the config file is syntactically valid.
+  ansible.builtin.debug:
+    msg: '{{ configtest_result }}'
+
+
+- name: Start hourly backup
+  ansible.builtin.command:
+    cmd: rsnapshot hourly
+  register: hourly_result
+  when: rsnapshot_start_hourly_backup != false
+- name: Start hourly backup
+  ansible.builtin.debug:
+    msg: '{{ hourly_result }}'
+  when: rsnapshot_start_hourly_backup != false
