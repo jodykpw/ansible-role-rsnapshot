@@ -6,12 +6,17 @@ An Ansible role for installing and configuring rsnapshot for automated backups.
 Requirements
 ------------
 
-None.
+This Ansible role has been developed and thoroughly tested with Ansible Core version 2.15.0.
+
+This role was designed for:
+
+- CentOS 8 Stream
+- RHEL 8
 
 Role Variables
 --------------
 
-The available variables, along with their default values, can be found in the defaults/main.yml file.
+[defaults/main.yml](defaults/main.yml).
 
 Dependencies
 ------------
