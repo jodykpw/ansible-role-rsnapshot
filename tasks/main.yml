@@ -7,11 +7,11 @@
   stat: path=/usr/bin/rsnapshot
   register: rsnapshot_file
 
-- name: "Install rsnapshot"
-  yum:
-    name: rsnapshot
+- name: Install rsnapshot
+  ansible.builtin.package:
+    name: "{{ item }}"
     state: present
-  when: (rsnapshot_file.stat.exists == false)
+  when: rsnapshot_file.stat.exists == false
 
 - name: Copy rsnapshot configuration file.
   template:
