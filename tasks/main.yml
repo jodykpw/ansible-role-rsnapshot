@@ -9,7 +9,7 @@
 
 - name: Install rsnapshot
   ansible.builtin.package:
-    name: "{{ item }}"
+    name: rsnapshot
     state: present
   when: not rsnapshot_file.stat.exists
 
