@@ -11,7 +11,7 @@
   ansible.builtin.package:
     name: "{{ item }}"
     state: present
-  when: rsnapshot_file.stat.exists == false
+  when: not rsnapshot_file.stat.exists
 
 - name: Copy rsnapshot configuration file.
   template:
@@ -28,12 +28,12 @@
   register: snapshots_exist
 
 
-- name: Creates directory, all snapshots will be stored under this directory.
+- name: Creates directory for storing all snapshots.
   file:
     path: "{{ rsnapshot_config_snapshot_root }}"
     state: directory
     mode: 0755
-  when: (snapshots_exist.stat.exists == false)
+  when: not snapshots_exist.stat.exists
 
 
 - name: Check logfile directory exist.
@@ -46,7 +46,7 @@
     path: "{{ rsnapshot_config_logfile_folder }}"
     state: directory
     mode: 0755
-  when: (logfile_exist.stat.exists == false)
+  when: not logfile_exist.stat.exists
 
 
 - name: Check lockfile directory exist.
@@ -59,7 +59,7 @@
     path: "{{ rsnapshot_config_lockfile_folder }}"
     state: directory
     mode: 0755
-  when: (lockfile_exist.stat.exists == false)
+  when: not lockfile_exist.stat.exists
 
 
 - name: Creates rsnapshot hourly backup cronjob
@@ -107,8 +107,8 @@
   ansible.builtin.command:
     cmd: rsnapshot hourly
   register: hourly_result
-  when: rsnapshot_start_hourly_backup != false
+  when: rsnapshot_start_hourly_backup
 - name: Start hourly backup
   ansible.builtin.debug:
     msg: '{{ hourly_result }}'
-  when: rsnapshot_start_hourly_backup != false
+  when: rsnapshot_start_hourly_backup
